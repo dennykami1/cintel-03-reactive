@@ -152,6 +152,15 @@ app_ui = ui.page_fluid(
                         inline=False
                     ),
                     ui.hr(style="border-top: 4px solid #f75c03;"),
+                    ui.h3("Data Frame & Data Table Filter"),
+                    ui.input_checkbox_group( 
+                        "species_input_df_dt",
+                        "Select One or More Penguin Species to Display:",
+                        choices=["Adelie", "Chinstrap", "Gentoo"],
+                        selected=["Adelie", "Chinstrap", "Gentoo"],
+                        inline=False
+                    ),
+                    ui.hr(style="border-top: 4px solid #f75c03;"),
                     ui.a("GitHub", href="https://github.com/dennykami1/cintel-02-data", target="_blank"),
                     class_="sidebar-custom"  # Apply custom sidebar class              
                 ),
@@ -389,12 +398,18 @@ def server(input, output, session):
     @output
     @render.data_frame
     def penguins_df():
-        return render.DataGrid(penguins)
+        # Filter the penguins dataset based on selected species
+        selected_species = input.species_input_df_dt()
+        filtered_penguins = penguins[penguins["species"].isin(selected_species)]
+        return render.DataGrid(filtered_penguins)
 
     @output
     @render.data_frame  
     def penguins_dt():
-        return render.DataTable(penguins)
+        # Filter the penguins dataset based on selected species
+        selected_species = input.species_input_df_dt()
+        filtered_penguins = penguins[penguins["species"].isin(selected_species)]
+        return render.DataTable(filtered_penguins)
 
 # --------------------------------------------------------
 # Reactive calculations and effects
