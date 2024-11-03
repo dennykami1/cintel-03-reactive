@@ -1,1 +1,5 @@
-
+matplotlib
+plotly
+palmerpenguins
+seaborn
+ipyleaflet
