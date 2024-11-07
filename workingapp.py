@@ -5,7 +5,7 @@ import palmerpenguins
 penguins = palmerpenguins.load_penguins()
 
 app_ui = ui.page_fluid(
-    ui.h2("Penguins Data Viewer", style="background-color:orange; color:white;"),
+    ui.h2("Penguins Data Year and Species Filter", style="background-color:blue; color:white;"),
     
     # Checkbox for toggling "Show All Years"
     ui.input_checkbox("all_years", "Show All Years", False),
@@ -21,8 +21,7 @@ app_ui = ui.page_fluid(
         selected=["Adelie", "Chinstrap", "Gentoo"]
     ),
     
-    # Display filtered data as text and as a data frame
-    ui.output_text_verbatim("filtered_txt"),
+    # Display filtered data as a data frame
     ui.output_data_frame("grid")
 )
 
