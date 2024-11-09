@@ -1,4 +1,4 @@
-from shiny import App, Inputs, Outputs, Session, ui, render
+from shiny import App, Inputs, Outputs, Session, ui, render, reactive
 import matplotlib.pyplot as plt
 import plotly.express as px
 import pandas as pd  # Import pandas here
@@ -6,7 +6,6 @@ from shinywidgets import output_widget, render_widget
 import shinyswatch
 from palmerpenguins import load_penguins 
 import seaborn as sns
-from shiny import reactive
 import ipyleaflet as ipyl
 
 # Load the Palmer Penguins dataset
@@ -77,24 +76,49 @@ app_ui = ui.page_fluid(
         ui.layout_sidebar(
             ui.sidebar(
                 ui.div(
-                    ui.h1("Side Bar"),
+                    ui.h2("Filters and Inputs"),
+                    ui.hr(style="border-top: 4px solid #f75c03;"),
+
+                    ui.h4(
+                        "Filter Data by Year or Select All Years with the Checkbox:",
+                    ),
+                    ui.div(
+                        ui.input_checkbox_group(
+                            "selected_species_mc", 
+                            "Select Species to Filter Data:", 
+                            choices=["Adelie", "Chinstrap", "Gentoo"], 
+                            selected=["Adelie", "Chinstrap", "Gentoo"]
+                        ),
+                        style="background-color: transparent; margin-top: 15; margin-bottom: 10px;"
+                    ),
+                    ui.div(
+                        ui.input_checkbox_group(
+                            "sex_filter", 
+                            "Select Sex to Filter Data:", 
+                            choices=["male", "female"], 
+                            selected=["male", "female"],
+                        ),
+                        style="background-color: transparent; margin-top: 15; margin-bottom: 2px;"
+                    ),
+                    
+                    ui.div(
+                        ui.input_slider("year_slider", "Select Year:", 2007, 2009, 2007),
+                        style="background-color: transparent;"
+                    ),
+                    ui.div(
+                        ui.input_checkbox("all_years", "Check to Show data from All Years", True),
+                        style="background-color: transparent; margin-top: 15; margin-bottom: 10px;"
+                    ),
                     ui.hr(style="border-top: 4px solid #f75c03;"),
                     
                     #Seaborn Sidebar
-                    ui.h3("Seaborn Histogram Inputs"),
+                    ui.h4("Seaborn Histogram Inputs"),
                     ui.input_slider("n", "Seaborn Bin Count", 1, 50, 25),
                     ui.input_selectize(
                         "selected_attribute",  # Name of the input
                         "Select a column for X-axis:",  # Label for the input
                         choices=display_names,  # Use display names in dropdown
                         selected="Body Mass (g)"  # Default selection
-                    ),
-                    ui.input_checkbox_group(
-                        "multi_choice_input",
-                        "Select One or More Penguin Species to Display:",
-                        choices=["Adelie", "Chinstrap", "Gentoo"],
-                        selected=["Adelie", "Chinstrap", "Gentoo"],
-                        inline=False
                     ),
                     ui.input_checkbox(
                         "show_all",
@@ -104,21 +128,14 @@ app_ui = ui.page_fluid(
                     ui.hr(style="border-top: 4px solid #f75c03;"),
                             
                     #Plotly Sidebar
-                    ui.h3("Plotly Histogram Inputs"),  # Heading 2 for the histogram card title
+                    ui.h4("Plotly Histogram Inputs"),  # Heading 2 for the histogram card title
+                    ui.input_numeric("numeric", "Number of bins", 20, min=1, max=100),
                     ui.input_selectize(
                         "x_column", 
                         "Select a column for X-axis:", 
                         choices=display_names,  # Display names in dropdown
                         selected="Body Mass (g)"
-                    ),
-                    ui.input_numeric("numeric", "Number of bins", 20, min=1, max=100),  
-                    ui.input_checkbox_group( 
-                        "multi_choice_PlotlyH",
-                        "Select One or More Penguin Species to Display:",
-                        choices=["Adelie", "Chinstrap", "Gentoo"],
-                        selected=["Adelie", "Chinstrap", "Gentoo"],
-                        inline=False
-                    ),
+                    ),  
                     ui.input_checkbox(
                         "show_all_PlotlyH",
                         "Show Selected Species without Overlay"
@@ -131,7 +148,7 @@ app_ui = ui.page_fluid(
                     ui.hr(style="border-top: 4px solid #f75c03;"),
 
 
-                    ui.h3("Plotly Scatter Plot Inputs"),  # Heading 2 for the scatter plot card title
+                    ui.h4("Plotly Scatter Plot Inputs"),  # Heading 2 for the scatter plot card title
                     ui.input_selectize(
                         "x_column_scatter", 
                         "Select a column for X-axis:", 
@@ -144,29 +161,13 @@ app_ui = ui.page_fluid(
                         choices=display_names,  # Display names in dropdown
                         selected="Flipper Length (mm)"
                     ),
-                    ui.input_checkbox_group( 
-                        "species_input",
-                        "Select One or More Penguin Species to Display:",
-                        choices=["Adelie", "Chinstrap", "Gentoo"],
-                        selected=["Adelie", "Chinstrap", "Gentoo"],
-                        inline=False
-                    ),
-                    ui.hr(style="border-top: 4px solid #f75c03;"),
-                    ui.h3("Data Frame & Data Table Filter"),
-                    ui.input_checkbox_group( 
-                        "species_input_df_dt",
-                        "Select One or More Penguin Species to Display:",
-                        choices=["Adelie", "Chinstrap", "Gentoo"],
-                        selected=["Adelie", "Chinstrap", "Gentoo"],
-                        inline=False
-                    ),
                     ui.hr(style="border-top: 4px solid #f75c03;"),
                     ui.a("GitHub", href="https://github.com/dennykami1/cintel-02-data", target="_blank"),
                     class_="sidebar-custom"  # Apply custom sidebar class              
                 ),
             ),
             ui.div(
-                ui.h2("Exploring Interactive UI, Plotly, and Seaborn with Palmer Penguins Data"),
+                ui.h2("Exploring a Interactive and Reactive Application featuring Palmer Penguins Data"),
                 class_="title-box"
             ),
             ui.page_fillable(
@@ -174,11 +175,11 @@ app_ui = ui.page_fluid(
                     ui.card_header("Interactive Histograms in PyShiny with Seaborn and Plotly", style="background-color: #8ecae6; color: #14213d;"),
                     ui.layout_columns(
                         ui.card(
-                            ui.h2("Seaborn Histogram"),
+                            ui.h3("Seaborn Histogram"),
                             ui.output_plot("plot"),     
                         ),
                         ui.card(
-                            ui.h2("Plotly Histogram"),
+                            ui.h3("Plotly Histogram"),
                             output_widget("penguins_histogram"),  # Output widget for histogram
                             full_screen=True  # Make inner card full-screen width
                         )
@@ -191,7 +192,7 @@ app_ui = ui.page_fluid(
                 ui.card_header("Scatter Plot using Plotly & Interactive Map using ipyleaflet", style="background-color: #8ecae6; color: #14213d;"),
                 ui.layout_columns(
                     ui.card(
-                        ui.h2("Plotly Scatter Plot"),
+                        ui.h3("Plotly Scatter Plot"),
                         output_widget("penguins_scatter_plot"),
                     ),
                     ui.card(
@@ -274,14 +275,14 @@ def server(input, output, session):
     def plot():
         selected_display_name = input.selected_attribute()
         selected_column = column_choices[selected_display_name]
-        selected_species = input.multi_choice_input()
+        selected_species = input.selected_species_mc()
 
         # Ensure at least one species is selected
         if not selected_species:
             raise ValueError("Please select at least one species.")
 
-        # Filter penguins DataFrame based on selected species
-        filtered_penguins = penguins[penguins['species'].isin(selected_species)]
+        # Use the filtered data
+        filtered_penguins = filtered_data()
 
         # Determine overlay based on checkbox
         multiple_mode = "layer" if not input.show_all() else "stack"
@@ -329,9 +330,8 @@ def server(input, output, session):
         # Map the display name back to the actual column name
         x_column_name = column_choices[input.x_column()]
 
-        # Filter the penguins dataset based on selected species
-        selected_species = input.multi_choice_PlotlyH()
-        filtered_penguins = penguins[penguins["species"].isin(selected_species)]
+        # Use the filtered data
+        filtered_penguins = filtered_data()
 
         # Define color for single color option
         single_color = "#636EFA"  # Default color (you can change this)
@@ -374,10 +374,9 @@ def server(input, output, session):
         x_column_name = column_choices[input.x_column_scatter()]
         y_column_name = column_choices[input.y_column_scatter()]
 
-        # Filter the penguins dataset based on selected species
-        selected_species = input.species_input()
-        filtered_penguins = penguins[penguins["species"].isin(selected_species)]
-
+        # Use the filtered data
+        filtered_penguins = filtered_data()
+        
         # Create scatter plot
         scatterplot = px.scatter(
             data_frame=filtered_penguins,
@@ -395,21 +394,28 @@ def server(input, output, session):
 
         return scatterplot
 
+    # Observe the "Show All Years" checkbox to update the slider dynamically
+    @reactive.Effect
+    def toggle_slider():
+        if input.all_years():
+            # If "Show All Years" is checked, lock the slider to a single value
+            ui.update_slider("year_slider", value=2007, min=2007, max=2007, label="All Years Selected")
+            ui.update_checkbox("all_years", label="Uncheck to Filter Data by Year using Slider")
+        else:
+            # Restore the slider's full range if "Show All Years" is unchecked
+            ui.update_slider("year_slider", min=2007, max=2009, label="Select Year:")
+            ui.update_checkbox("all_years", label="Check to Show data from All Years")
+    
+
     @output
     @render.data_frame
     def penguins_df():
-        # Filter the penguins dataset based on selected species
-        selected_species = input.species_input_df_dt()
-        filtered_penguins = penguins[penguins["species"].isin(selected_species)]
-        return render.DataGrid(filtered_penguins)
+        return filtered_data()
 
     @output
     @render.data_frame  
     def penguins_dt():
-        # Filter the penguins dataset based on selected species
-        selected_species = input.species_input_df_dt()
-        filtered_penguins = penguins[penguins["species"].isin(selected_species)]
-        return render.DataTable(filtered_penguins)
+        return filtered_data()
 
 # --------------------------------------------------------
 # Reactive calculations and effects
@@ -420,9 +426,19 @@ def server(input, output, session):
 # The function will be called whenever an input functions used to generate that output changes.
 # Any output that depends on the reactive function (e.g., filtered_data()) will be updated when the data changes.
 
-@reactive.calc
-def filtered_data():
-    return penguins
+    @reactive.Calc
+    def filtered_data():
+        # Start by filtering based on selected species
+        filtered = penguins[penguins['species'].isin(input.selected_species_mc())]
+        
+        # Apply sex filter if selected
+        filtered = filtered[filtered['sex'].isin(input.sex_filter())]
+        
+        # Apply year filter if "Show All Years" is unchecked
+        if not input.all_years():
+            filtered = filtered[filtered['year'] == int(input.year_slider())]
+        
+        return filtered
 
 
 app = App(app_ui, server, debug=True)
