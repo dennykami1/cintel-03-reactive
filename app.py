@@ -162,7 +162,7 @@ app_ui = ui.page_fluid(
                         selected="Flipper Length (mm)"
                     ),
                     ui.hr(style="border-top: 4px solid #f75c03;"),
-                    ui.a("GitHub", href="https://github.com/dennykami1/cintel-02-data", target="_blank"),
+                    ui.a("GitHub", href="https://github.com/dennykami1/cintel-03-reactive", target="_blank"),
                     class_="sidebar-custom"  # Apply custom sidebar class              
                 ),
             ),
